@@ -12,6 +12,7 @@ const ledgerKey = "AuctionAssistant-ledger"
 func Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/ledger", serveLedger)
+	mux.HandleFunc("/api/market", serveMarket)
 	mux.HandleFunc("/api/icon/", serveIcon)
 	return mux
 }
