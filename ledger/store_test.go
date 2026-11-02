@@ -32,6 +32,14 @@ func TestShortBarcodeKeepsSavedCharacter(t *testing.T) {
 	if kept.Character != "Dave" || len(MergeEvents(saved, []Event{barcode})) != 3 {
 		t.Fatalf("saved then barcode: %+v", kept)
 	}
+	tagged, ok := ParseLine("10-9-Touge|c|21991|2|9900|Heavy Netherweave Bandage")
+	if !ok || tagged.Kind != "cancel" || tagged.Character != "Touge" {
+		t.Fatalf("tagged cancel: %+v %v", tagged, ok)
+	}
+	cancelled, ok := ParseLine("10-9|c|13463|20|50000|Dreamfoil")
+	if !ok || cancelled.Kind != "cancel" || cancelled.Name != "Dreamfoil" || cancelled.Copper != 50000 {
+		t.Fatalf("%+v %v", cancelled, ok)
+	}
 	posted, ok := ParseLine("10-1|p|13463|20|50000|86400|Dreamfoil")
 	if !ok || posted.Kind != "post" || posted.Copper != 50000 || posted.Duration != 86400 {
 		t.Fatalf("%+v", posted)

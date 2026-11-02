@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var kinds = map[string]bool{"post": true, "buy": true, "sold": true}
+var kinds = map[string]bool{"post": true, "buy": true, "sold": true, "cancel": true}
 
 var (
 	wireQuoted = regexp.MustCompile(`\["ledgerWire"\]\s*=\s*"((?:\\.|[^"\\])*)"`)
@@ -74,6 +74,8 @@ func ParseLine(line string) (Event, bool) {
 			short = "buy"
 		case "p":
 			short = "post"
+		case "c":
+			short = "cancel"
 		}
 	}
 	if short != "" {
@@ -90,6 +92,7 @@ func ParseLine(line string) (Event, bool) {
 		return Event{
 			ID: id, T: atoi(strings.Split(id, "-")[0]), Kind: short,
 			ItemID: atoi(parts[2]), Count: atoi(parts[3]), Copper: atoi(parts[4]),
+			Character: characterFromID(id),
 			Name: name, Duration: duration,
 		}, true
 	}
@@ -140,6 +143,9 @@ func MergeEvents(existing, incoming []Event) []Event {
 		}
 		if _, seen := byID[event.ID]; !seen {
 			order = append(order, event.ID)
+		}
+		if event.Character == "" {
+			event.Character = characterFromID(event.ID)
 		}
 		if prev, ok := byID[event.ID]; ok {
 			if event.Character == "" {
@@ -200,6 +206,23 @@ func Summarize(events []Event) Summary {
 
 func BearerOk(header, expected string) bool {
 	return expected != "" && header == "Bearer "+expected
+}
+
+func characterFromID(id string) string {
+	parts := strings.SplitN(id, "-", 3)
+	if len(parts) < 3 {
+		return ""
+	}
+	tag := strings.TrimSpace(parts[2])
+	if tag == "" {
+		return ""
+	}
+	for _, r := range tag {
+		if (r < '0' || r > '9') && (r < 'A' || r > 'Z') && (r < 'a' || r > 'z') && r != '_' {
+			return ""
+		}
+	}
+	return tag
 }
 
 func atoi(value string) int64 {

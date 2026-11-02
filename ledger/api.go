@@ -54,6 +54,11 @@ func serveLedger(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusMethodNotAllowed, []byte(`{"error":"method"}`))
 		return
 	}
+	for i := range events {
+		if events[i].Character == "" {
+			events[i].Character = characterFromID(events[i].ID)
+		}
+	}
 	body, _ := json.Marshal(struct {
 		Events  []Event `json:"events"`
 		Summary Summary `json:"summary"`
